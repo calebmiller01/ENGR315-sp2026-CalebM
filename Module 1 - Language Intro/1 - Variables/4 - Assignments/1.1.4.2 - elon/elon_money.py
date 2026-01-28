@@ -13,7 +13,7 @@ the 20-year bonds pay 4.32%, with each compounding annually.
 
 ### all your code below ###
 import math
-principal = 44000000000
+principal = 33000000000
 r_10yr = 3.96
 r_20yr = 4.32
 n_10yr = 10
