@@ -13,3 +13,17 @@ Note: this problem does not require the "compounding interest" formula from the 
 in_state_gift = 0
 
 out_state_gift = 0
+
+cost_in = 30792
+
+cost_out = 47882
+
+ret_rate = 0.05
+
+in_state_gift = cost_in / ret_rate
+
+out_state_gift = cost_out / ret_rate
+
+print("It costs $"+ str(in_state_gift) +" for in-state.")
+
+print("It costs $"+ str(out_state_gift) +" for out-of-state.")
