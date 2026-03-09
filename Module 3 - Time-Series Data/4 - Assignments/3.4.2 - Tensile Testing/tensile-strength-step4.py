@@ -62,7 +62,16 @@ def calculate_stress(force, sample_diameter):
 
     ### YOUR SOLUTION FROM STEP 1 TEMPLATE HERE ###
 
-    return None
+    C_Area = math.pi * ((sample_diameter**2)/4)
+
+    # calculate stress (MPa) from load (kN) and cross-sectional area
+    ### your code here ###
+    
+
+    # delete this line and replace it with your own
+    stress = (force * 1000) / C_Area
+
+    return stress
 
 
 def calculate_max_strength_strain(strain, stress):
@@ -75,9 +84,27 @@ def calculate_max_strength_strain(strain, stress):
     Fracture Strain: the maximum strain experienced before fracture
     """
 
-    ### YOUR SOLUTION FROM STEP 2 TEMPLATE HERE ###
+    ultimate_tensile_stress = stress[0]
+    for index in range(len(stress)):
+        # grab the current value in the list
+        value = stress[index]
 
-    return -1, -1
+        # if signal is rising
+        if value > ultimate_tensile_stress:
+            ultimate_tensile_stress = value
+
+
+    # calculate the maximum strain experienced
+    fracture_strain = strain[0]
+    for index in range(len(strain)):
+        # grab the current value in the list
+        value = strain[index]
+
+        # if signal is rising
+        if value > fracture_strain:
+            fracture_strain = value
+
+    return ultimate_tensile_stress, fracture_strain
 
 def calculate_elastic_modulus(strain, stress):
     """
@@ -92,11 +119,32 @@ def calculate_elastic_modulus(strain, stress):
     """
 
     # dummy variables the function should over write
-    linear_index = None
-    slope = None
-    intercept = None
+    strain = np.asarray(strain, dtype=float)
+    stress = np.asarray(stress, dtype=float)
 
-    ### YOUR SOLUTION FROM STEP 3 TEMPLATE HERE ###
+    uts = np.max(stress)
+    target = 0.40 * uts
+
+    # 2) find index closest to target stress
+    linear_index = int(np.argmin(np.abs(stress - target)))
+
+
+    eps = strain[linear_index]
+    sig = stress[linear_index]
+
+    if eps == 0:
+        # avoid divide-by-zero; pick next nonzero strain if possible
+        nonzero = np.where(strain != 0)[0]
+        if len(nonzero) == 0:
+            slope = 0.0
+            intercept = 0.0
+            return linear_index, slope, intercept
+        linear_index = int(nonzero[0])
+        eps = strain[linear_index]
+        sig = stress[linear_index]
+
+    slope = sig / eps
+    intercept = 0.0
 
     return linear_index, slope, intercept
 
@@ -113,16 +161,18 @@ def calculate_percent_offset(slope, strain, stress):
     """
     # set the desired offset for the line
     offset = 0.002
+    strain = np.asarray(strain, dtype=float)
+    stress = np.asarray(stress, dtype=float)
 
     # calculate the offset line: y=m(x-0.002) + 0
-    offset_line = None
+    offset_line = slope * (strain - offset)
 
     # measure distance from all points on graph to this line. Consider using the
     # abs() method to ensure values are positive
-    distance = None
+    distance = np.abs(stress - offset_line)
 
     # use argmin to find the index where the distance is minimal
-    intercept_index = -1
+    intercept_index = int(np.argmin(distance))
 
     return offset_line, intercept_index
 
