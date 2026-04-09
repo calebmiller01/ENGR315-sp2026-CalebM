@@ -21,7 +21,7 @@ def write_to_csv(filename: str, data):
     file.close()
 
 
-def one_sided_tests(_files: list, _mean: float, _alpha: float, _less_than: bool):
+def two_sided_tests(_files: list, _mean: float, _alpha: float, _less_than: bool):
     """
     Conduct a one-sided t-test, either left or ride sided. Null hypothesis is the means are equal.
     :param _files: List of files to be tested. Assume they can be loaded directly as a numpy array
@@ -35,6 +35,16 @@ def one_sided_tests(_files: list, _mean: float, _alpha: float, _less_than: bool)
     reject_null_hypothesis = []
 
     # YOUR CODE HERE #
+    for i in _files:
+        testdata = np.loadtxt(i)
+
+        if _less_than:
+            stat, p_value = ttest_1samp(testdata, popmean=_mean, alternative='less')
+        else:
+            stat, p_value = ttest_1samp(testdata, popmean=_mean, alternative='greater')
+
+        if p_value < _alpha:
+            reject_null_hypothesis.append(i)
 
     # return samples that were rejected
     return reject_null_hypothesis
@@ -74,10 +84,10 @@ if __name__ == "__main__":
     one_sided_test_files = ['lesser1.txt', 'lesser2.txt', 'greater1.txt', 'greater2.txt']
 
     # perform all left-sided tests (rejected should be less than target as means not equal)
-    left_sided_tests = one_sided_tests(_files=one_sided_test_files, _mean=target_mu, _alpha=0.5, _less_than=True)
+    left_sided_tests = two_sided_tests(_files=one_sided_test_files, _mean=target_mu, _alpha=0.5, _less_than=True)
     print('Conducting left sided tests. All samples less that mean should be returned. Samples: ', left_sided_tests)
 
     # perform all left-sided tests (rejected should be greater than target as means not equal)
-    right_sided_tests = one_sided_tests(_files=one_sided_test_files, _mean=target_mu, _alpha=0.5, _less_than=False)
+    right_sided_tests = two_sided_tests(_files=one_sided_test_files, _mean=target_mu, _alpha=0.5, _less_than=False)
     print('Conducting right sided tests. All samples greater that mean should be returned. Samples: ', right_sided_tests)
 
