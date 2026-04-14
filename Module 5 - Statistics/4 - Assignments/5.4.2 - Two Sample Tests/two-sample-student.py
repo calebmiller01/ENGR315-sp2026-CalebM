@@ -21,7 +21,7 @@ def write_to_csv(filename: str, data):
     file.close()
 
 
-def two_sided_tests(_files: list, _mean: float, _alpha: float, _less_than: bool):
+def two_sided_tests(_files1: list, _files2: list, _alpha: float):
     """
     Conduct a one-sided t-test, either left or ride sided. Null hypothesis is the means are equal.
     :param _files: List of files to be tested. Assume they can be loaded directly as a numpy array
@@ -35,16 +35,15 @@ def two_sided_tests(_files: list, _mean: float, _alpha: float, _less_than: bool)
     reject_null_hypothesis = []
 
     # YOUR CODE HERE #
-    for i in _files:
-        testdata = np.loadtxt(i)
+    for f1, f2 in zip(_files1, _files2):
+        data1 = np.loadtxt(f1)
+        data2 = np.loadtxt(f2)
 
-        if _less_than:
-            stat, p_value = ttest_1samp(testdata, popmean=_mean, alternative='less')
-        else:
-            stat, p_value = ttest_1samp(testdata, popmean=_mean, alternative='greater')
+        stat, p_value = ttest_ind(data1, data2)
 
         if p_value < _alpha:
-            reject_null_hypothesis.append(i)
+            reject_null_hypothesis.append((f1, f2))
+
 
     # return samples that were rejected
     return reject_null_hypothesis
