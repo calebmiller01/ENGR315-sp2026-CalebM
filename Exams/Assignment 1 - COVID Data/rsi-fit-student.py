@@ -11,9 +11,11 @@ path_to_datafile = "../../data/drop-jump/all_participant_data_rsi.csv"
 ### YOUR CODE HERE
 data = pd.read_csv(path_to_datafile)
 
+###read the RSI data columns and put in array
 accel_rsi = data['accelerometer_rsi'].to_numpy()
 force_plate_rsi = data['force_plate_rsi'].to_numpy()
 
+##set alpha to val given
 alpha = 0.05
 
 """
@@ -24,7 +26,7 @@ probability distribution function. Include appropriate labels, titles, and legen
 print('-----Question 1-----')
 
 ### YOUR CODE HERE
-##fit accel and forceplt rsi to norm dist
+##fit accel and forceplt rsi data to norm dist
 accel_mu, accel_std = norm.fit(accel_rsi)
 fp_mu, fp_std = norm.fit(force_plate_rsi)
 
@@ -37,7 +39,7 @@ print("Force Plate RSI")
 print("mu =", fp_mu)
 print("std =", fp_std)
 
-##create pdf for accel
+##create norm PDF for accel RSI
 x_accel = np.linspace(min(accel_rsi), max(accel_rsi), 1000)
 y_accel = norm.pdf(x_accel, loc=accel_mu, scale=accel_std)
 
@@ -50,10 +52,11 @@ plt.ylabel('Probability Density')
 plt.legend()
 plt.show()
 
-## create pdf for forceplt
+## create norm PDF for forceplt RSI
 x_fp = np.linspace(min(force_plate_rsi), max(force_plate_rsi), 1000)
 y_fp = norm.pdf(x_fp, loc=fp_mu, scale=fp_std)
 
+##create and label plot
 plt.figure()
 plt.plot(x_fp, y_fp, label='Force Plate RSI Normal PDF')
 plt.title('Force Plate RSI Normal Distribution')
@@ -75,30 +78,28 @@ print('\n\n-----Question 2-----')
 Acceleration
 """
 ### YOUR CODE HERE
-##bin setup for even spacing inside
+##bin setup for even spacing from 0-2
 inside_bins = np.linspace(0, 2, 10)
 
 bins = []
-##add neg inf to cover pts outside bin range to match infinite distribution norm bin cnt
-bins.append(-np.inf)
 
-##add vals in range
+##add vals in bin range between 0-2 
 for value in inside_bins:
     bins.append(value)
 
-####add pos inf to cover pts outside bin range to match infinite distribution norm bin cnt
+####add pos inf so values above 2 are included in the last bin
 bins.append(np.inf)
 
 ##make bins an array
 bins = np.array(bins)
 
-##parse accel vals in bin range
+##count accel RSI vals in each bin range
 accel_hist = np.histogram(accel_rsi, bins=bins)
 accel_obs = accel_hist[0]
 
 accel_exp_list = []
 
-##use norm dist to estimate expected vals in bin range
+##use fitted norm dist to estimate expected cnts in each bin range
 for i in range(len(bins) - 1):
     left = bins[i]
     right = bins[i+1]
@@ -111,12 +112,15 @@ for i in range(len(bins) - 1):
 ##use chitest to compare expected to actual
 accel_exp = np.array(accel_exp_list)
 
+##scale expected cnts to match total actual cnts
+accel_exp = accel_exp * (np.sum(accel_obs) / np.sum(accel_exp))
+
 chi2_accel, p_accel = chisquare(accel_obs, accel_exp)
 
 print("Acceleration chi2 =", chi2_accel)
 print("Acceleration p =", p_accel)
 
-##use pval to check fit
+##use pval and alpha to check fit
 if p_accel < alpha:
     print("Acceleration: Not a good fit")
 else:
@@ -144,6 +148,9 @@ for i in range(len(bins) - 1):
 
 fp_exp = np.array(fp_exp_list)
 
+##scale expected cnts to match total actual cnts (important for equal chi test vals)
+fp_exp = fp_exp * (np.sum(fp_obs) / np.sum(fp_exp))
+
 chi2_fp, p_fp = chisquare(fp_obs, fp_exp)
 
 print("\nForce Plate chi2 =", chi2_fp)
@@ -162,7 +169,7 @@ An alpha=0.05 is suitable for these tests.
 print('\n\n-----Question 3-----')
 
 ### YOUR CODE HERE
-##perform and store ttest comparing accel to force plate
+##perform and store ttest comparing accel to force plate RSI means
 t_stat, p_val = ttest_ind(accel_rsi, force_plate_rsi)
 
 print("t-stat =", t_stat)
@@ -182,17 +189,17 @@ legends. The default binning approach from matplot lib with 16 bins is sufficien
 """
 
 ### YOUR CODE HERE
-##create array for difference of force and accel
+##create array for RSI error as difference of force and accel RSIs
 error = force_plate_rsi - accel_rsi
 
-##norm fit error array
+##fit the RSI error to norm dist
 error_mu, error_std = norm.fit(error)
 
 print('\n\n-----Question 4-----')
 print("Error mu =", error_mu)
 print("Error std =", error_std)
 
-##setup plot and display
+##setup histogram of RSI error and plot fitted norm curve
 x_values = np.linspace(min(error), max(error), 1000)
 y_values = norm.pdf(x_values, error_mu, error_std)
 
