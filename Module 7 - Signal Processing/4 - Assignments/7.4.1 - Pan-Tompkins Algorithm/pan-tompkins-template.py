@@ -1,5 +1,6 @@
 import numpy as np
 from ekg_testbench import EKGTestBench
+from scipy.signal import find_peaks
 
 def detect_heartbeats(filepath):
     """
@@ -16,35 +17,74 @@ def detect_heartbeats(filepath):
 
     # load data in matrix from CSV file; skip first two rows
     ## your code here
+    data = np.loadtxt(path, delimiter=',', skiprows=2)
 
     # save each vector as own variable
     ## your code here
+    ##seperate data into columns
+    time = data[:, 0]
+    mlii = data[:, 1]
+    v5 = data[:, 2]
 
     # identify one column to process. Call that column signal
+    ##mlii col selected
 
-    signal = -1 ## your code here
+    signal = mlii ## your code here
 
     # pass data through LOW PASS FILTER (OPTIONAL)
     ## your code here
+    ##length of win
+    low_pass_window = 2
+    ##creation of averaging filter
+    low_pass_kernel = np.ones(low_pass_window) / low_pass_window
+    ##applying filter and keep length
+    low_pass = np.convolve(signal, low_pass_kernel, mode='same')
 
     # pass data through HIGH PASS FILTER (OPTIONAL) to create BAND PASS result
     ## your code here
 
+    ##length of window
+    high_pass_window = 77
+    ##creation of avg filter
+    baseline_kernel = np.ones(high_pass_window) / high_pass_window
+    ##applying filter and keep length
+    baseline = np.convolve(low_pass, baseline_kernel, mode='same')
+    ##apply bandpass using lowpass and baseline trends
+    band_pass = low_pass - baseline
+
     # pass data through differentiator
     ## your code here
+    ##diff and keep length
+    diff = np.diff(band_pass, prepend=band_pass[0])
 
     # pass data through square function
     ## your code here
+    squared = diff * diff
 
     # pass through moving average window
     ## your code here
+    #find sample rate from time data
+    sample_rate = 1.0 / np.mean(np.diff(time))
+    ##use sample to create 80ms window
+    moving_average_window = int(0.042 * sample_rate)
+    ##create ma avg filter
+    ma_kernel = np.ones(moving_average_window) / moving_average_window
+    ##apply filter to squared data
+    signal = np.convolve(squared, ma_kernel, mode='same')
 
     # use find_peaks to identify peaks within averaged/filtered data
     # save the peaks result and return as part of testbench result
 
     ## your code here peaks,_ = find_peaks(....)
+    ##make min dist win between beats
+    minimum_distance = int(0.21 * sample_rate)
+    #set min peak based on avg lvl and std variations
+    peak_height = np.mean(signal) + 0.085 * np.std(signal)
 
-    beats = None
+    ##detect peaks based on all requirments
+    peaks, _ = find_peaks(signal, height=peak_height, distance=minimum_distance)
+
+    beats = peaks
 
     # do not modify this line
     return signal, beats
